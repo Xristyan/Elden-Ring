@@ -1146,11 +1146,13 @@ map.on("moveend",()=>{clearTimeout(window._vt);window._vt=setTimeout(saveView,40
 // iOS home-screen apps can report a viewport shorter than the screen; stretch fixed layers over the gap
 function fixViewport(){
   const sa=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-  let gap=0; if(sa&&screen.height>innerHeight&&Math.abs(screen.width-innerWidth)<2) gap=Math.max(0,Math.min(80,screen.height-innerHeight));
+  const vh=Math.min(innerHeight,document.documentElement.clientHeight||innerHeight), portrait=innerHeight>innerWidth;
+  let gap=0; if(sa&&portrait&&screen.height>vh) gap=Math.max(0,Math.min(100,screen.height-vh));
+  window._diag=`екран ${screen.width}×${screen.height} · прозорец ${innerWidth}×${innerHeight} · layout ${document.documentElement.clientHeight} · корекция ${gap}px · ${sa?"приложение":"браузър"}`;
   document.documentElement.style.setProperty("--gb",gap+"px");
   map.invalidateSize({pan:false}); sizeCanvas(); snap(sheetState); redraw();
 }
-addEventListener("pageshow",fixViewport); addEventListener("orientationchange",()=>setTimeout(fixViewport,300));
+addEventListener("pageshow",fixViewport); addEventListener("resize",()=>setTimeout(fixViewport,50)); addEventListener("orientationchange",()=>setTimeout(fixViewport,300));
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(fixViewport,100);});
 function hit(cp){const R=radius(map.getZoom())+14;let best=null,bd=R*R;
   for(let i=drawn.length-1;i>=0;i--){const d=drawn[i],dx=d.x-cp.x,dy=d.y-cp.y,dd=dx*dx+dy*dy;if(dd<bd||(dd===bd&&d.qs)){bd=dd;best=d;}}return best;}
@@ -1245,7 +1247,7 @@ function renderFilters(){
       <div class="btns"><button class="btn" type="button" id="pcopy">Копирай прогреса</button></div>
       <textarea id="ptext" rows="3" placeholder="Постави копирания прогрес тук" style="width:100%;margin-top:8px;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px"></textarea>
       <div class="btns" style="margin-top:8px"><button class="btn" type="button" id="pload">Зареди</button><span id="pmsg" style="font-size:13.5px;color:var(--muted);align-self:center"></span></div>
-      <p class="credit">Карта и данни: datamine от <a href="https://github.com/EthanShoeDev/elden-ring-compass" target="_blank" rel="noopener">elden-ring-compass</a> и <a href="https://github.com/jw-ofs/elden-ring-map" target="_blank" rel="noopener">jw-ofs/elden-ring-map</a>. Иконки: <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).</p>`;
+      <p class="credit">Карта и данни: datamine от <a href="https://github.com/EthanShoeDev/elden-ring-compass" target="_blank" rel="noopener">elden-ring-compass</a> и <a href="https://github.com/jw-ofs/elden-ring-map" target="_blank" rel="noopener">jw-ofs/elden-ring-map</a>. Иконки: <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).<br>Версия ${window.APPV||"claude.ai"} · ${esc(window._diag||"")}</p>`;
     b.scrollTop=sc;
   }
 }
@@ -1474,7 +1476,15 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-if("serviceWorker" in navigator&&location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+window.APPV="3c932a24";
+if("serviceWorker" in navigator&&location.protocol==="https:"){
+  let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+    const chk=()=>reg.update().catch(()=>{}); chk();
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)chk();});
+  }).catch(()=>{});
+}
 sizeCanvas();
 snap("peek");
 setLayer(st.m||"M00");
