@@ -960,6 +960,7 @@ const CATS={
  npc:{l:"NPC",g:"Прогрес",c:"#b48ad0"},
  castle:{l:"Замъци",g:"Прогрес",c:"#b3a07a"},
  dungeon:{l:"Пещери и катакомби",g:"Прогрес",c:"#7d95b8"},
+ keyitem:{l:"Ключови предмети",g:"Подобрения на героя",c:"#4fc3b0"},
  golden:{l:"Golden Seeds",g:"Подобрения на героя",c:"#cdb22e"},
  tear:{l:"Sacred Tears",g:"Подобрения на героя",c:"#5fa2dc"},
  scadu:{l:"Scadutree / Revered (DLC)",g:"Подобрения на героя",c:"#c9a86a"},
@@ -986,7 +987,7 @@ const CATS={
  custom:{l:"Мои пинове",g:"Лични",c:"#e06aa0"}
 };
 const ORDER=Object.keys(CATS), PRI=Object.fromEntries(ORDER.map((k,i)=>[k,i]));
-const PRESET=["grace","boss","bossdragon","bossfield","bossdungeon","bossnight","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
+const PRESET=["keyitem","grace","boss","bossdragon","bossfield","bossdungeon","bossnight","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
 const MLABEL={M00:"Земите между",M01:"Под земята",M10:"Shadow of the Erdtree"}, MSHORT={M00:"Земи",M01:"Под земята",M10:"DLC"};
 const ZONES=Object.fromEntries(A.zones.map(z=>[z.id,z]));
 const QUESTS=A.quests, QBY=Object.fromEntries(QUESTS.map(q=>[q.id,q]));
@@ -1003,7 +1004,7 @@ const svgG=k=>`<svg class="g" viewBox="0 0 512 512" aria-hidden="true">${(A.glyp
 const KEY="tarnished-atlas-v3";
 let st={found:{},notes:{},custom:[],cats:PRESET,hideFound:false,labels:true,m:"M00",q:{},qopen:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
-if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}
+if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}
 let enabled=new Set(st.cats), zone=null, sel=null, selStep=null, query="", adding=false, listLimit=80, tab="zones", openQ=st.qopen||null;
 let ALL=[]; const byId=new Map();
 function rebuild(){
@@ -1029,7 +1030,7 @@ function save(){
     if(!d||!u) return; const uid=await u.id(); if(!uid) return;
     docRef=d.doc("data/users/"+uid+"/atlas/v3");
     const snap=await docRef.get();
-    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
+    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
     else save();
   }catch(e){}
 })();
@@ -1346,7 +1347,7 @@ function setAdd(v){adding=v;$("addBtn").classList.toggle("on",v);$("addBtn").set
 
 /* ---------- route ---------- */
 const ROUTE=A.route||[];
-const CORECAT=new Set(["grace","castle","golden","tear","greatrune","mapfrag","memory"]);
+const CORECAT=new Set(["keyitem","grace","castle","golden","tear","greatrune","mapfrag","memory"]);
 let openR=null, rOpen=null, rAll=!!st.rAll;
 function objInfo(o){
   if(o[0]==="q"){const q=QBY[o[1]],s=q&&q.steps.find(x=>x.n===o[2]);if(!s)return null;
@@ -1488,7 +1489,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="c0bdd742";
+window.APPV="0c143082";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
