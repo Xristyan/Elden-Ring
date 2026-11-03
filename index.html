@@ -952,7 +952,11 @@ svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
 const A=window.ATLAS, TILES=window.ATLAS_TILES;
 const CATS={
  grace:{l:"Благодат",g:"Прогрес",c:"#e2ae4a"},
- boss:{l:"Босове",g:"Прогрес",c:"#d0564b"},
+ boss:{l:"Главни босове",g:"Босове",c:"#e8b33f"},
+ bossdragon:{l:"Дракони",g:"Босове",c:"#e0762f"},
+ bossfield:{l:"Полеви босове",g:"Босове",c:"#d0564b"},
+ bossdungeon:{l:"Босове в подземия",g:"Босове",c:"#a8637a"},
+ bossnight:{l:"Нощни босове",g:"Босове",c:"#6f86c9"},
  npc:{l:"NPC",g:"Прогрес",c:"#b48ad0"},
  castle:{l:"Замъци",g:"Прогрес",c:"#b3a07a"},
  dungeon:{l:"Пещери и катакомби",g:"Прогрес",c:"#7d95b8"},
@@ -982,7 +986,7 @@ const CATS={
  custom:{l:"Мои пинове",g:"Лични",c:"#e06aa0"}
 };
 const ORDER=Object.keys(CATS), PRI=Object.fromEntries(ORDER.map((k,i)=>[k,i]));
-const PRESET=["grace","boss","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
+const PRESET=["grace","boss","bossdragon","bossfield","bossdungeon","bossnight","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
 const MLABEL={M00:"Земите между",M01:"Под земята",M10:"Shadow of the Erdtree"}, MSHORT={M00:"Земи",M01:"Под земята",M10:"DLC"};
 const ZONES=Object.fromEntries(A.zones.map(z=>[z.id,z]));
 const QUESTS=A.quests, QBY=Object.fromEntries(QUESTS.map(q=>[q.id,q]));
@@ -999,7 +1003,7 @@ const svgG=k=>`<svg class="g" viewBox="0 0 512 512" aria-hidden="true">${(A.glyp
 const KEY="tarnished-atlas-v3";
 let st={found:{},notes:{},custom:[],cats:PRESET,hideFound:false,labels:true,m:"M00",q:{},qopen:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
-if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}
+if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}
 let enabled=new Set(st.cats), zone=null, sel=null, selStep=null, query="", adding=false, listLimit=80, tab="zones", openQ=st.qopen||null;
 let ALL=[]; const byId=new Map();
 function rebuild(){
@@ -1025,7 +1029,7 @@ function save(){
     if(!d||!u) return; const uid=await u.id(); if(!uid) return;
     docRef=d.doc("data/users/"+uid+"/atlas/v3");
     const snap=await docRef.get();
-    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
+    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
     else save();
   }catch(e){}
 })();
@@ -1092,7 +1096,7 @@ function stamp(p,R,f){
   const pad=5, S=Math.ceil((R+pad)*2*DPR); c=document.createElement("canvas"); c.width=c.height=S;
   const g=c.getContext("2d"); g.scale(DPR,DPR); const o=R+pad, col=(CATS[p.cat]||CATS.custom).c;
   g.save();g.shadowColor="rgba(0,0,0,.55)";g.shadowBlur=R>8?5:3;g.shadowOffsetY=1.5;g.beginPath();g.arc(o,o,R,0,7);g.fillStyle=f?"#3a3b3d":icon?"#4a463e":col;g.fill();g.restore();
-  g.lineWidth=R>8?2:1.4;g.strokeStyle=f?"#8fc58a":icon?col:"rgba(255,255,255,.92)";g.beginPath();g.arc(o,o,R-.5,0,7);g.stroke();
+  g.lineWidth=p.cat==="boss"?(R>8?3:2):R>8?2:1.4;g.strokeStyle=f?"#8fc58a":icon?col:p.cat==="boss"?"#fff3c4":"rgba(255,255,255,.92)";g.beginPath();g.arc(o,o,R-.5,0,7);g.stroke();
   if(R>=9){
     if(f){g.strokeStyle="#8fc58a";g.lineWidth=2.6;g.lineCap="round";g.beginPath();g.moveTo(o-R*.42,o);g.lineTo(o-R*.1,o+R*.34);g.lineTo(o+R*.45,o-R*.36);g.stroke();}
     else if(icon){const Ss=A.spriteSize,cols=A.spriteCols,k=p.info.i,s=R*1.75;g.save();g.beginPath();g.arc(o,o,R-1.5,0,7);g.clip();g.drawImage(sprite,(k%cols)*Ss,Math.floor(k/cols)*Ss,Ss,Ss,o-s/2,o-s/2,s,s);g.restore();}
@@ -1111,7 +1115,7 @@ function draw(){
     const x=p.u*k-ox, y=p.v*k-oy; if(x<-30||y<-30||x>W+30||y>H+30) continue;
     if(p.id===sel){selD={p,x,y};drawn.push(selD);continue;}
     if(declutter){const key=((x/cell)|0)+","+((y/cell)|0); if(occ.has(key)) continue; occ.add(key);}
-    const f=!!st.found[p.id]; const s=stamp(p,R,f);
+    const f=!!st.found[p.id]; const s=stamp(p,p.cat==="boss"?R+3:R,f);
     if(zone&&p.zone!==zone&&!dim){ctx.globalAlpha=.3;ctx.drawImage(s,x-s._o,y-s._o,s.width/DPR,s.height/DPR);ctx.globalAlpha=1;}
     else ctx.drawImage(s,x-s._o,y-s._o,s.width/DPR,s.height/DPR);
     drawn.push({p,x,y});
@@ -1348,7 +1352,7 @@ function objInfo(o){
   if(o[0]==="q"){const q=QBY[o[1]],s=q&&q.steps.find(x=>x.n===o[2]);if(!s)return null;
     return {t:`${q.name}: ${s.t}`,sub:s.d,done:!!(st.q[q.id]||{})[s.n],core:true,q:true,x:s.x,y:s.y,m:s.m,cat:"npc",qc:q.color};}
   const p=byId.get(o[1]); if(!p) return null;
-  const v={grace:"Открий",dungeon:"Изчисти",castle:"Влез в",boss:"Победи"}[p.cat]||"Вземи";
+  const v=p.cat.startsWith("boss")?"Победи":({grace:"Открий",dungeon:"Изчисти",castle:"Влез в"}[p.cat]||"Вземи");
   return {t:`${v} ${p.name}`,sub:[p.cat==="grace"||p.cat==="dungeon"?null:p.sub,p.desc&&!/runes$/.test(p.desc)?(SRC[p.desc.split(" x")[0]]||p.desc):null].filter(Boolean).join(" · "),done:!!st.found[p.id],core:o[2]===1||CORECAT.has(p.cat),boss:o[2]===1,x:p.x,y:p.y,m:p.m,cat:p.cat,p};
 }
 function phaseObjs(ph){const out=[];ph.o.forEach((o,i)=>{const v=objInfo(o);if(v&&(rAll||v.core))out.push(Object.assign(v,{o,i}));});return out;}
@@ -1484,7 +1488,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="f644947f";
+window.APPV="c0bdd742";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
