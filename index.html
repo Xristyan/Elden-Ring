@@ -1093,9 +1093,10 @@ const radius=z=>z<0?5:z<1?6.5:z<2?9:z<3?11:z<4?13:15;
 const stamps=new Map();
 function stamp(p,R,f){
   const icon=!f&&R>=13&&p.info&&p.info.i!=null&&sprite.naturalWidth;
-  const key=(icon?"i"+p.info.i:p.cat)+"|"+R+"|"+(f?1:0);
+  const ug=p.info&&p.info.fdc==="dungeon"&&R>=9&&!p.cat.startsWith("boss");
+  const key=(icon?"i"+p.info.i:p.cat)+"|"+R+"|"+(f?1:0)+(ug?"u":"");
   let c=stamps.get(key); if(c) return c;
-  const pad=5, S=Math.ceil((R+pad)*2*DPR); c=document.createElement("canvas"); c.width=c.height=S;
+  const pad=7, S=Math.ceil((R+pad)*2*DPR); c=document.createElement("canvas"); c.width=c.height=S;
   const g=c.getContext("2d"); g.scale(DPR,DPR); const o=R+pad, col=(CATS[p.cat]||CATS.custom).c;
   g.save();g.shadowColor="rgba(0,0,0,.55)";g.shadowBlur=R>8?5:3;g.shadowOffsetY=1.5;g.beginPath();g.arc(o,o,R,0,7);g.fillStyle=f?"#3a3b3d":icon?"#4a463e":col;g.fill();g.restore();
   g.lineWidth=p.cat==="boss"?(R>8?3:2):R>8?2:1.4;g.strokeStyle=f?"#8fc58a":icon?col:p.cat==="boss"?"#fff3c4":"rgba(255,255,255,.92)";g.beginPath();g.arc(o,o,R-.5,0,7);g.stroke();
@@ -1104,6 +1105,8 @@ function stamp(p,R,f){
     else if(icon){const Ss=A.spriteSize,cols=A.spriteCols,k=p.info.i,s=R*1.75;g.save();g.beginPath();g.arc(o,o,R-1.5,0,7);g.clip();g.drawImage(sprite,(k%cols)*Ss,Math.floor(k/cols)*Ss,Ss,Ss,o-s/2,o-s/2,s,s);g.restore();}
     else{const P=P2D[p.cat]||P2D.custom,s=R*1.32;g.save();g.translate(o-s/2,o-s/2);g.scale(s/512,s/512);g.fillStyle="#15130f";g.fill(P);g.restore();}
   }
+  if(ug){const bx=o+R*.72,by=o+R*.72,br=Math.max(5,R*.42);g.beginPath();g.arc(bx,by,br,0,7);g.fillStyle="#2b3444";g.fill();g.lineWidth=1.4;g.strokeStyle="#fff";g.stroke();
+    const P=P2D.dungeon,s2=br*1.5;g.save();g.translate(bx-s2/2,by-s2/2);g.scale(s2/512,s2/512);g.fillStyle="#cfe0ff";g.fill(P);g.restore();}
   c._o=o; stamps.set(key,c); return c;
 }
 function draw(){
@@ -1306,11 +1309,12 @@ function renderCard(){
   if(p.desc&&p.cat!=="castle"&&!/runes$/.test(p.desc)){const m=p.desc.match(/^(Treasure|Enemy drop|Event reward)(.*)$/);
     const how=m&&m[1]==="Event reward"&&i.fb?`Награда за победа над ${i.fb}`:m?SRC[m[1]]:p.desc;
     kv.push(["Как се взима",how+(m?m[2].replace(" x"," · ×"):"")]);}
-  if(i.fd) kv.push(["Къде",`В или до ${i.fd}`]);
+  if(i.fd) kv.push(["Къде",i.fdc==="dungeon"?`Вътре в ${i.fd}`:`В или до ${i.fd}`]);
   if(kv.length) body+=`<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>`;
   const tg=(t,a,c)=>a&&a.length?`<div><div class="meta" style="margin-bottom:5px">${t}</div><div class="tags">${tl(a).map(x=>`<span class="tag ${c}">${esc(x)}</span>`).join("")}</div></div>`:"";
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
   if(i.n) body+=`<p style="color:var(--muted)">${esc(i.n)}</p>`;
+  if(i.fdc==="dungeon"&&i.fdi&&byId.get(i.fdi)) body+=`<div class="help"><b>Под земята.</b> Пинът е над мястото вътре в подземието, затова на картата отгоре не се вижда нищо. Влез в ${esc(i.fd)} и го търси вътре${i.fb?", при боса":""}.<div style="margin-top:8px"><button class="btn" type="button" data-id="${i.fdi}">Покажи ${esc(i.fd)}</button></div></div>`;
   if(p.cat==="npc"){const qs=A.npcq[p.name]||[]; if(!qs.length) body+=`<p style="color:var(--muted)">За този герой няма проследим куест.</p>`;
     qs.forEach(qid=>{const q=QBY[qid];if(!q)return;const cs=curStep(q),pr=qProg(q);
     body+=`<div class="qbox" style="--qc:${q.color}"><b>Куест: ${esc(q.name)}</b><small>${cs?`Стъпка ${cs.n} от ${q.steps.length}: ${esc(cs.t)}`:"Завършен"}</small><div><button class="btn" type="button" data-oq="${qid}">Отвори куеста</button></div></div>`;});}
@@ -1493,7 +1497,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="4c5f8cbf";
+window.APPV="74b79035";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
