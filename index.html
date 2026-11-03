@@ -961,6 +961,7 @@ const CATS={
  castle:{l:"Замъци",g:"Прогрес",c:"#b3a07a"},
  dungeon:{l:"Пещери и катакомби",g:"Прогрес",c:"#7d95b8"},
  keyitem:{l:"Ключови предмети",g:"Подобрения на героя",c:"#4fc3b0"},
+ torrent:{l:"Torrent и облекла",g:"Подобрения на героя",c:"#8fd0e6"},
  golden:{l:"Golden Seeds",g:"Подобрения на героя",c:"#cdb22e"},
  tear:{l:"Sacred Tears",g:"Подобрения на героя",c:"#5fa2dc"},
  scadu:{l:"Scadutree / Revered (DLC)",g:"Подобрения на героя",c:"#c9a86a"},
@@ -987,7 +988,7 @@ const CATS={
  custom:{l:"Мои пинове",g:"Лични",c:"#e06aa0"}
 };
 const ORDER=Object.keys(CATS), PRI=Object.fromEntries(ORDER.map((k,i)=>[k,i]));
-const PRESET=["keyitem","grace","boss","bossdragon","bossfield","bossdungeon","bossnight","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
+const PRESET=["keyitem","torrent","grace","boss","bossdragon","bossfield","bossdungeon","bossnight","npc","castle","dungeon","golden","tear","scadu","greatrune","larval","memory","special","whetblade","key","mapfrag","custom"];
 const MLABEL={M00:"Земите между",M01:"Под земята",M10:"Shadow of the Erdtree"}, MSHORT={M00:"Земи",M01:"Под земята",M10:"DLC"};
 const ZONES=Object.fromEntries(A.zones.map(z=>[z.id,z]));
 const QUESTS=A.quests, QBY=Object.fromEntries(QUESTS.map(q=>[q.id,q]));
@@ -1005,7 +1006,7 @@ function migrateIds(){if(st.idv===2||!A.idmap)return;const mp=A.idmap,re=o=>{con
 const KEY="tarnished-atlas-v3";
 let st={found:{},notes:{},custom:[],cats:PRESET,hideFound:false,labels:true,m:"M00",q:{},qopen:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
-if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}migrateIds();
+if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}migrateIds();
 let enabled=new Set(st.cats), zone=null, sel=null, selStep=null, query="", adding=false, listLimit=80, tab="zones", openQ=st.qopen||null;
 let ALL=[]; const byId=new Map();
 function rebuild(){
@@ -1031,7 +1032,7 @@ function save(){
     if(!d||!u) return; const uid=await u.id(); if(!uid) return;
     docRef=d.doc("data/users/"+uid+"/atlas/v3");
     const snap=await docRef.get();
-    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}migrateIds();enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
+    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}migrateIds();enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
     else save();
   }catch(e){}
 })();
@@ -1259,6 +1260,9 @@ function renderFilters(){
       <label class="sw">Имена на зоните<input type="checkbox" id="zoneLabels" ${st.labels?"checked":""}></label>
       <div class="cg-t" style="display:flex;justify-content:space-between;align-items:center">Категории<button class="link" type="button" id="allCats" style="min-height:32px;font-size:13px">Покажи всички</button></div>
       ${Object.entries(groups).map(([g,a])=>`<div class="cg-t">${g}</div><div class="tiles">${a.join("")}</div>`).join("")}</div>
+      <div class="cg-t">Докладвани грешки</div>
+      <p style="margin:0 0 8px;font-size:13.5px;color:var(--muted);line-height:1.45">Отбелязал си ${Object.keys(st.rep||{}).length} пина като грешни. Копирай списъка и ми го прати, за да ги поправя.</p>
+      <div class="btns"><button class="btn" type="button" id="repcopy">Копирай списъка</button><button class="btn" type="button" id="repclear">Изчисти</button><span id="repmsg" style="font-size:13.5px;color:var(--muted);align-self:center"></span></div>
       <div class="cg-t">Прехвърли прогреса</div>
       <p style="margin:0 0 8px;font-size:13.5px;color:var(--muted);line-height:1.45">За да пренесеш отметките между приложението на телефона и тази страница: „Копирай“ тук, после постави текста в другата версия и натисни „Зареди“.</p>
       <div class="btns"><button class="btn" type="button" id="pcopy">Копирай прогреса</button></div>
@@ -1287,7 +1291,9 @@ function renderList(){
   if(items.length>listLimit) html+=`<button class="btn more" type="button" id="more">Покажи още (${items.length-listLimit})</button>`;
   b.innerHTML=html;
 }
-const wikiUrl=n=>"https://eldenring.wiki.fextralife.com/"+encodeURIComponent(n.replace(/ /g,"+")).replace(/%2B/g,"+");
+const wikiName=n=>n.replace(/ \(Hoarah Loux\)$/,"").replace(/^Spectral Steed Whistle \(Torrent\)$/,"Spectral Steed Whistle").replace(/^Radagon of the Golden Order \/ Elden Beast$/,"Elden Beast");
+const wikiUrl=n=>"https://eldenring.wiki.gg/index.php?search="+encodeURIComponent(wikiName(n))+"&title=Special%3ASearch&go=Go";
+const fextraUrl=n=>"https://www.google.com/search?q="+encodeURIComponent("site:eldenring.wiki.fextralife.com "+wikiName(n));
 const DMG={physical:"физ.",standard:"standard",slash:"slash",strike:"strike",pierce:"pierce",magic:"магия",fire:"огън",lightning:"мълния",holy:"свято",bleed:"кървене",frostbite:"измръзване",poison:"отрова",rot:"гниене",sleep:"сън",madness:"лудост",death:"смърт"};
 const tl=a=>(a||[]).map(x=>DMG[x]||x);
 const SRC={"Treasure":"Лежи на земята или в сандък","Enemy drop":"Пада от враг","Event reward":"Награда от бос, куест или събитие"};
@@ -1314,6 +1320,8 @@ function renderCard(){
   const tg=(t,a,c)=>a&&a.length?`<div><div class="meta" style="margin-bottom:5px">${t}</div><div class="tags">${tl(a).map(x=>`<span class="tag ${c}">${esc(x)}</span>`).join("")}</div></div>`:"";
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
   if(i.n) body+=`<p style="color:var(--muted)">${esc(i.n)}</p>`;
+  if(i.uv) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
+  if(p.cat==="greatrune") body+=`<p style="color:var(--muted)">Great Rune пада от бос, но трябва да я активираш в съответната Divine Tower, за да работи.</p>`;
   if(i.fdc==="dungeon"&&i.fdi&&byId.get(i.fdi)) body+=`<div class="help"><b>Под земята.</b> Пинът е над мястото вътре в подземието, затова на картата отгоре не се вижда нищо. Влез в ${esc(i.fd)} и го търси вътре${i.fb?", при боса":""}.<div style="margin-top:8px"><button class="btn" type="button" data-id="${i.fdi}">Покажи ${esc(i.fd)}</button></div></div>`;
   if(p.cat==="npc"){const qs=A.npcq[p.name]||[]; if(!qs.length) body+=`<p style="color:var(--muted)">За този герой няма проследим куест.</p>`;
     qs.forEach(qid=>{const q=QBY[qid];if(!q)return;const cs=curStep(q),pr=qProg(q);
@@ -1324,9 +1332,11 @@ function renderCard(){
      <div class="btns"><button class="btn primary${f?" found":""}" type="button" id="cf" style="flex:1">${f?"✓ Намерено":"Отбележи като намерено"}</button>${p.cat==="custom"?`<button class="btn" type="button" id="cdel">Изтрий</button>`:""}</div>
      ${body}
      <textarea id="note" placeholder="Бележка: ниво, билд, какво остава…">${esc(st.notes[p.id]||"")}</textarea>
-     ${p.cat!=="custom"?`<a class="wl" href="${wikiUrl(p.name)}" target="_blank" rel="noopener">Отвори в wiki ↗</a>`:""}
+     ${p.cat!=="custom"?`<div class="btns" style="gap:16px"><a class="wl" href="${wikiUrl(p.name)}" target="_blank" rel="noopener">Wiki ↗</a><a class="wl" href="${fextraUrl(p.name)}" target="_blank" rel="noopener">Fextralife ↗</a></div>`:""}
+     ${p.cat!=="custom"?`<div class="btns"><button class="btn${st.rep&&st.rep[p.id]?" on":""}" type="button" id="crep">${st.rep&&st.rep[p.id]?"✓ Докладвано като грешно":"Нещо не е вярно тук"}</button></div>`:""}
    </div></div>`;
   $("cx").onclick=closeCard; $("cf").onclick=()=>{toggle(p.id);renderCard();};
+  if($("crep")) $("crep").onclick=()=>{st.rep=st.rep||{};if(st.rep[p.id])delete st.rep[p.id];else st.rep[p.id]=1;save();renderCard();};
   $("note").oninput=e=>{st.notes[p.id]=e.target.value;save();};
   card.querySelectorAll("[data-oq]").forEach(b=>b.onclick=()=>{closeCard();openQuest(b.dataset.oq,true);});
   if(p.cat==="custom") $("cdel").onclick=()=>{st.custom=st.custom.filter(x=>x.id!==p.id);delete st.found[p.id];delete st.notes[p.id];rebuild();save();closeCard();render();};
@@ -1466,6 +1476,9 @@ document.addEventListener("click",e=>{
     else {const n=+t.dataset.upto; q.steps.forEach(s=>{if(s.n<n) d[s.n]=1; else delete d[s.n];});}
     const sc=$("body").scrollTop; save(); render(); $("body").scrollTop=sc; return;
   }
+  if(t.id==="repcopy"){const lines=Object.keys(st.rep||{}).map(id=>{const p=byId.get(id);return p?`${id} | ${p.name} | ${CATS[p.cat]?.l||p.cat} | ${[p.sub,ZONES[p.zone]?.label].filter(Boolean).join(", ")}${st.notes[id]?" | "+st.notes[id]:""}`:id;}).join("\n")||"(няма)";
+    try{navigator.clipboard.writeText(lines).then(()=>{$("repmsg").textContent="Копирано.";},()=>{$("ptext").value=lines;$("ptext").select();$("repmsg").textContent="Маркирах го в полето долу.";});}catch(e){$("ptext").value=lines;}return;}
+  if(t.id==="repclear"){st.rep={};save();renderFilters();return;}
   if(t.id==="pcopy"){const txt="ATLAS1:"+btoa(unescape(encodeURIComponent(JSON.stringify({found:st.found,notes:st.notes,custom:st.custom,q:st.q}))));
     const ok=()=>{$("pmsg").textContent="Копирано.";};
     try{navigator.clipboard.writeText(txt).then(ok,()=>{$("ptext").value=txt;$("ptext").select();$("pmsg").textContent="Маркирах текста, копирай го ръчно.";});}catch(e){$("ptext").value=txt;$("ptext").select();$("pmsg").textContent="Маркирах текста, копирай го ръчно.";}
@@ -1497,7 +1510,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="74b79035";
+window.APPV="651e9f9d";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
