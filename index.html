@@ -1303,7 +1303,10 @@ function renderCard(){
   if(i.mat) kv.push(["Подобрява се с",i.mat]); if(i.aff) kv.push(["Афинитет",i.aff]);
   if(i.som!=null&&p.cat==="weapon") kv.push(["Камъни",i.som?"Somber (до +10)":"Обикновени (до +25)"]);
   if(i.r) kv.push(["Руни",i.r.toLocaleString("bg-BG")]);
-  if(p.desc&&p.cat!=="castle"&&!/runes$/.test(p.desc)){const m=p.desc.match(/^(Treasure|Enemy drop|Event reward)(.*)$/);kv.push(["Как се взима",m?SRC[m[1]]+m[2].replace(" x"," · ×"):p.desc]);}
+  if(p.desc&&p.cat!=="castle"&&!/runes$/.test(p.desc)){const m=p.desc.match(/^(Treasure|Enemy drop|Event reward)(.*)$/);
+    const how=m&&m[1]==="Event reward"&&i.fb?`Награда за победа над ${i.fb}`:m?SRC[m[1]]:p.desc;
+    kv.push(["Как се взима",how+(m?m[2].replace(" x"," · ×"):"")]);}
+  if(i.fd) kv.push(["Къде",`В или до ${i.fd}`]);
   if(kv.length) body+=`<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>`;
   const tg=(t,a,c)=>a&&a.length?`<div><div class="meta" style="margin-bottom:5px">${t}</div><div class="tags">${tl(a).map(x=>`<span class="tag ${c}">${esc(x)}</span>`).join("")}</div></div>`:"";
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
@@ -1490,7 +1493,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="784f0e87";
+window.APPV="1920a818";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
