@@ -689,8 +689,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
   --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
   color-scheme:dark;
 }
-html,body{height:100%}
-body{background:#161719;color:var(--fg);font-family:var(--body);font-size:15px;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+html{height:100%;overflow:hidden;background:#161719}
+body{height:100%}
+#app{position:absolute;left:0;top:0;width:100%;height:var(--appH,100%);overflow:hidden}
+body{background:#161719;color:var(--fg);font-family:var(--body);font-size:15px;overflow:visible;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 *{box-sizing:border-box}
 button,input,textarea{font:inherit;color:inherit}
 button{touch-action:manipulation}
@@ -698,13 +700,13 @@ button{touch-action:manipulation}
 svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-#map{position:fixed;left:0;right:0;top:0;bottom:calc(-1*var(--gb));background:#14171a}
+#map{position:absolute;left:0;right:0;top:0;bottom:0;background:#14171a}
 .leaflet-container{font-family:var(--body);background:#14171a}
-#mk{position:fixed;left:0;top:0;width:100vw;height:100%;pointer-events:none;z-index:450;transform-origin:0 0}
+#mk{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:450;transform-origin:0 0}
 #mk.anim{transition:transform .25s cubic-bezier(0,0,.25,1)}
 
 /* top */
-.top{position:fixed;left:0;right:0;top:0;z-index:800;padding-top:calc(var(--st) + 8px);padding-left:max(12px,var(--sl));padding-right:max(12px,var(--sr));display:grid;gap:8px;pointer-events:none;padding-bottom:6px}
+.top{position:absolute;left:0;right:0;top:0;z-index:800;padding-top:calc(var(--st) + 8px);padding-left:max(12px,var(--sl));padding-right:max(12px,var(--sr));display:grid;gap:8px;pointer-events:none;padding-bottom:6px}
 .top>*{pointer-events:auto}
 .srow{display:flex;gap:8px}
 .search{position:relative;flex:1;min-width:0}
@@ -723,19 +725,19 @@ svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
 .qbanner{display:flex;gap:8px;align-items:center;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--glass-hi);border-left:4px solid var(--qc);border-radius:14px;padding:4px 4px 4px 12px;font-size:14px;min-height:42px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .qbanner span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qbanner button{width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:20px}
-.menu{position:fixed;z-index:850;top:calc(var(--st) + 62px);right:max(12px,var(--sr));background:rgba(30,31,34,.9);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--glass-hi);border-radius:16px;padding:6px;display:grid;gap:2px;min-width:220px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.menu{position:absolute;z-index:850;top:calc(var(--st) + 62px);right:max(12px,var(--sr));background:rgba(30,31,34,.9);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--glass-hi);border-radius:16px;padding:6px;display:grid;gap:2px;min-width:220px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
 .menu button{height:44px;border:0;background:none;border-radius:8px;text-align:left;padding:0 12px;font-size:15px}
 .menu button[aria-pressed="true"]{background:var(--panel-3);color:var(--gold)}
 
 /* floating buttons */
-.fabs{position:fixed;right:max(12px,var(--sr));z-index:700;display:grid;gap:8px;bottom:calc(var(--peek) + var(--sb) + 14px);transition:bottom .25s}
+.fabs{position:absolute;right:max(12px,var(--sr));z-index:700;display:grid;gap:8px;bottom:calc(var(--peek) + var(--sb) + 14px);transition:bottom .25s}
 .fab{width:48px;height:48px;border-radius:50%;border:1px solid var(--glass-hi);background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:grid;place-items:center;font-size:20px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .fab.on{border-color:var(--gold);color:var(--gold)}
-.hint{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--st) + 112px);z-index:810;background:rgba(27,28,29,.97);border:1px solid var(--gold-dim);color:var(--gold);border-radius:10px;padding:9px 14px;font-size:14px;width:max-content;max-width:calc(100% - 32px);text-align:center}
+.hint{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--st) + 112px);z-index:810;background:rgba(27,28,29,.97);border:1px solid var(--gold-dim);color:var(--gold);border-radius:10px;padding:9px 14px;font-size:14px;width:max-content;max-width:calc(100% - 32px);text-align:center}
 
 /* sheets */
 :root{--peek:118px}
-.sheet{position:fixed;left:0;right:0;bottom:calc(-1*var(--gb));z-index:900;height:calc(88% - var(--st));background:rgba(22,23,26,.94);-webkit-backdrop-filter:blur(28px) saturate(1.4);backdrop-filter:blur(28px) saturate(1.4);border-top:1px solid var(--glass-hi);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;transform:translateY(var(--y,0px));will-change:transform;padding-left:var(--sl);padding-right:var(--sr)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:900;height:calc(88% - var(--st));background:rgba(22,23,26,.94);-webkit-backdrop-filter:blur(28px) saturate(1.4);backdrop-filter:blur(28px) saturate(1.4);border-top:1px solid var(--glass-hi);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;transform:translateY(var(--y,0px));will-change:transform;padding-left:var(--sl);padding-right:var(--sr)}
 .sheet.snap{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .grab{padding-bottom:calc(var(--sbx) + 6px)!important;flex:none;touch-action:none;cursor:grab;padding:7px max(14px,var(--sl)) 0}
 .grab::before{content:"";display:block;width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.22);margin:0 auto 10px}
@@ -851,7 +853,7 @@ svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
 .form input{background:var(--ink);border:1px solid var(--line);border-radius:10px;height:46px;padding:0 12px;font-size:16px}
 
 /* filter modal */
-.scrim{position:fixed;inset:0;z-index:980;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s}
+.scrim{position:absolute;inset:0;z-index:980;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s}
 .scrim.on{opacity:1}
 .fsheet{z-index:990;height:calc(90% - var(--st))}
 .fhead{display:flex;justify-content:space-between;align-items:center;padding:0 max(12px,var(--sr)) 10px max(16px,var(--sl));border-bottom:1px solid var(--line)}
@@ -894,6 +896,7 @@ svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
 @media (min-width:700px){.sheet{left:50%;right:auto;width:440px;margin-left:-220px}}
 </style>
 
+<div id="app">
 <div id="map" aria-label="Карта"></div>
 <canvas id="mk"></canvas>
 
@@ -942,6 +945,7 @@ svg.g{width:1em;height:1em;fill:currentColor;flex:none;display:block}
   <div class="ffoot"><button class="btn" type="button" id="noCats">Скрий всички</button><button class="btn" type="button" id="preset">Основните</button><button class="btn primary" type="button" id="fdone">Готово</button></div>
 </section>
 
+</div>
 <script src="leaflet.js"></script>
 <script src="data.js"></script>
 <script>
@@ -1028,12 +1032,12 @@ function save(){
 
 /* ---------- map ---------- */
 const BLANK="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-const map=L.map("map",{crs:L.CRS.Simple,minZoom:-1.5,maxZoom:5.5,zoomSnap:.25,zoomDelta:.5,attributionControl:false,zoomControl:false,maxBoundsViscosity:.8,bounceAtZoomLimits:false,tapHold:true});
+const map=L.map("map",{crs:L.CRS.Simple,minZoom:-1,maxZoom:5.5,zoomSnap:.25,zoomDelta:.5,attributionControl:false,zoomControl:false,maxBoundsViscosity:.8,bounceAtZoomLimits:false,tapHold:true});
 const Tiles=L.TileLayer.extend({getTileUrl(c){const s=this._set[c.z],k=c.x+"_"+c.y;return s&&s.has(k)?`tiles/${this._m}/${c.z}/${k}.webp`:BLANK;}});
 const tileSets={}; for(const m in TILES){tileSets[m]={}; for(const z in TILES[m]) tileSets[m][z]=new Set(TILES[m][z]);}
 const MB={M00:[0,0,9728,9216],M01:[512,1536,6912,8448],M10:[2816,1792,7936,7936]};
 const boundsOf=(b,pad=0)=>L.latLngBounds(ll(b[0]-pad,b[3]+pad),ll(b[2]+pad,b[1]-pad));
-function layerFor(m){const t=new Tiles("",{tileSize:1024,minNativeZoom:0,maxNativeZoom:4,noWrap:true,keepBuffer:1,updateWhenZooming:false,updateWhenIdle:true,bounds:boundsOf(MB[m])});t._m=m;t._set=tileSets[m];return t;}
+function layerFor(m){const t=new Tiles("",{tileSize:1024,minZoom:-3,minNativeZoom:0,maxNativeZoom:4,noWrap:true,keepBuffer:1,updateWhenZooming:false,updateWhenIdle:true,bounds:boundsOf(MB[m])});t._m=m;t._set=tileSets[m];return t;}
 const layers={M00:layerFor("M00"),M01:layerFor("M01"),M10:layerFor("M10")};
 let curM=null;
 function setLayer(m,keep){
@@ -1052,11 +1056,12 @@ const VKEY="tarnished-atlas-view";
 function saveView(){try{const c=map.getCenter();localStorage.setItem(VKEY,JSON.stringify({m:curM,lat:c.lat,lng:c.lng,z:map.getZoom()}));}catch(e){}}
 function startView(){
   let v=null;try{v=JSON.parse(localStorage.getItem(VKEY)||"null");}catch(e){}
-  if(v&&v.m===curM&&isFinite(v.z)){map.setView([v.lat,v.lng],v.z,{animate:false});return;}
+  if(v&&v.m===curM&&isFinite(v.z)&&v.z>=0.75){map.setView([v.lat,v.lng],v.z,{animate:false});return;}
   const z=A.zones.find(z=>z.m===curM&&(curM!=="M00"||z.id==="limgrave"))||A.zones.find(z=>z.m===curM);
   map.fitBounds(boundsOf(z.b,60),{animate:false,paddingTopLeft:[0,110],paddingBottomRight:[0,peekH()]});
-  if(map.getZoom()<1) map.setZoom(1,{animate:false});
+  if(map.getZoom()<1.25) map.setView(ll((z.b[0]+z.b[2])/2,(z.b[1]+z.b[3])/2),1.5,{animate:false});
 }
+let touched=false; map.on("dragstart zoomstart",()=>{if(map._loaded&&performance.now()>1500)touched=true;});
 function fitLayer(){
   let b=[1e9,1e9,-1e9,-1e9]; A.zones.filter(z=>z.m===curM).forEach(z=>{b=[Math.min(b[0],z.b[0]),Math.min(b[1],z.b[1]),Math.max(b[2],z.b[2]),Math.max(b[3],z.b[3])];});
   map.fitBounds(boundsOf(b,150),{animate:false,paddingTopLeft:[0,110],paddingBottomRight:[0,peekH()]});
@@ -1148,9 +1153,12 @@ function fixViewport(){
   const sa=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
   const vh=Math.min(innerHeight,document.documentElement.clientHeight||innerHeight), portrait=innerHeight>innerWidth;
   let gap=0; if(sa&&portrait&&screen.height>vh) gap=Math.max(0,Math.min(100,screen.height-vh));
-  window._diag=`екран ${screen.width}×${screen.height} · прозорец ${innerWidth}×${innerHeight} · layout ${document.documentElement.clientHeight} · корекция ${gap}px · ${sa?"приложение":"браузър"}`;
-  document.documentElement.style.setProperty("--gb",gap+"px");
-  map.invalidateSize({pan:false}); sizeCanvas(); snap(sheetState); redraw();
+  const H=gap?screen.height:innerHeight;
+  document.documentElement.style.setProperty("--appH",H+"px");
+  window._diag=`екран ${screen.width}×${screen.height} · прозорец ${innerWidth}×${innerHeight} · layout ${document.documentElement.clientHeight} · app ${H} · ${sa?"приложение":"браузър"}`;
+  const before=map.getSize().y; map.invalidateSize({pan:false}); sizeCanvas(); snap(sheetState);
+  if(!touched&&performance.now()<4000&&Math.abs(map.getSize().y-before)>2) startView();
+  redraw();
 }
 addEventListener("pageshow",fixViewport); addEventListener("resize",()=>setTimeout(fixViewport,50)); addEventListener("orientationchange",()=>setTimeout(fixViewport,300));
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(fixViewport,100);});
@@ -1476,7 +1484,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="3c932a24";
+window.APPV="f644947f";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
