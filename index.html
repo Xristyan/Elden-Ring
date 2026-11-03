@@ -1001,10 +1001,11 @@ const P2D={}; for(const k in A.glyphs) P2D[k]=new Path2D(A.glyphs[k].join(" "));
 const svgG=k=>`<svg class="g" viewBox="0 0 512 512" aria-hidden="true">${(A.glyphs[k]||A.glyphs.custom).map(p=>`<path d="${p}"/>`).join("")}</svg>`;
 
 /* ---------- state ---------- */
+function migrateIds(){if(st.idv===2||!A.idmap)return;const mp=A.idmap,re=o=>{const n={};for(const k in o)n[mp[k]||k]=o[k];return n;};st.found=re(st.found||{});st.notes=re(st.notes||{});st.idv=2;}
 const KEY="tarnished-atlas-v3";
 let st={found:{},notes:{},custom:[],cats:PRESET,hideFound:false,labels:true,m:"M00",q:{},qopen:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
-if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}
+if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}migrateIds();
 let enabled=new Set(st.cats), zone=null, sel=null, selStep=null, query="", adding=false, listLimit=80, tab="zones", openQ=st.qopen||null;
 let ALL=[]; const byId=new Map();
 function rebuild(){
@@ -1030,7 +1031,7 @@ function save(){
     if(!d||!u) return; const uid=await u.id(); if(!uid) return;
     docRef=d.doc("data/users/"+uid+"/atlas/v3");
     const snap=await docRef.get();
-    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
+    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}migrateIds();enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
     else save();
   }catch(e){}
 })();
@@ -1489,7 +1490,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="0c143082";
+window.APPV="784f0e87";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
