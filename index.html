@@ -1301,7 +1301,8 @@ function renderList(){
     if(!open) continue;
     const lim=st.lc["n_"+cat]||60;
     for(let n=0;n<g.length&&n<lim;n++){const p=g[n];
-    const where=[p.info?.t,p.sub,query||!zone?ZONES[p.zone]?.label:null]; if(query&&p.m!==curM) where.push(MSHORT[p.m]);
+    const loc=p.info&&p.info.gn&&!p.info.ph&&!p.cat.startsWith("boss")&&!["grace","dungeon","castle","npc"].includes(p.cat);
+    const where=loc?[p.info.fdc==="dungeon"?p.info.fd:null,(CTN[p.info.ct]||"").replace(/ \(.*\)$/,"")||null,whereText(p,true)]:[p.info?.t,p.sub,query||!zone?ZONES[p.zone]?.label:null]; if(query&&p.m!==curM) where.push(MSHORT[p.m]);
     html+=`<div class="row${st.found[p.id]?" done":""}${p.id===sel?" sel":""}" style="--c:${CATS[p.cat].c}">
       <button class="tick" type="button" data-t="${p.id}" aria-label="Намерено: ${esc(p.name)}" aria-pressed="${!!st.found[p.id]}"></button>
       <span class="ico">${iconHTML(p,32)}</span><button class="nm" type="button" data-id="${p.id}"><b>${esc(p.name)}</b><small>${esc([...new Set(where.filter(Boolean))].join(" · ")||p.desc)}</small></button></div>`;}
@@ -1314,6 +1315,19 @@ const wikiUrl=n=>"https://eldenring.wiki.gg/index.php?search="+encodeURIComponen
 const fextraUrl=n=>"https://www.google.com/search?q="+encodeURIComponent("site:eldenring.wiki.fextralife.com "+wikiName(n));
 const DMG={physical:"физ.",standard:"standard",slash:"slash",strike:"strike",pierce:"pierce",magic:"магия",fire:"огън",lightning:"мълния",holy:"свято",bleed:"кървене",frostbite:"измръзване",poison:"отрова",rot:"гниене",sleep:"сън",madness:"лудост",death:"смърт"};
 const tl=a=>(a||[]).map(x=>DMG[x]||x);
+/* concrete "how / where" text for an item pin */
+const CTN={chest:"В сандък",cart:"В сандък на каруца (керван)",stele:"На каменна плоча до пътя (фрагмент от картата)"};
+function howText(p){const i=p.info||{},d=p.desc||"";const m=d.match(/^(Treasure|Enemy drop|Event reward)(?: x(\d+))?$/);
+  const q=m&&m[2]?` · ×${m[2]}`:"";
+  if(!m) return d;
+  if(m[1]==="Treasure") return (CTN[i.ct]||"Лежи на земята, свети (често до труп)")+q;
+  if(m[1]==="Enemy drop") return "Пада от враг, който стои тук"+q;
+  if(i.fb) return `Награда за победа над ${i.fb}`+q;
+  return "Награда от събитие, куест или NPC"+q;}
+function whereText(p,short){const i=p.info||{};if(!i.gn) return "";
+  if(!i.gd) return short?`до „${i.gn}“`:`До мястото на благодат „${i.gn}“`;
+  const h=i.gh?(i.gh>0?`, ~${i.gh} м по-високо`:`, ~${-i.gh} м по-ниско`):"";
+  return short?`${i.gd} м ${i.gdir.replace("но","н.")} от „${i.gn}“`:`~${i.gd} м ${i.gdir} от „${i.gn}“${h}`;}
 const SRC={"Treasure":"Лежи на земята или в сандък","Enemy drop":"Пада от враг","Event reward":"Награда от бос, куест или събитие"};
 const STN={str:"Str",dex:"Dex",int:"Int",fai:"Fai",arc:"Arc"};
 function renderCard(){
@@ -1330,15 +1344,16 @@ function renderCard(){
   if(i.mat) kv.push(["Подобрява се с",i.mat]); if(i.aff) kv.push(["Афинитет",i.aff]);
   if(i.som!=null&&p.cat==="weapon") kv.push(["Камъни",i.som?"Somber (до +10)":"Обикновени (до +25)"]);
   if(i.r) kv.push(["Руни",i.r.toLocaleString("bg-BG")]);
-  if(p.desc&&p.cat!=="castle"&&!/runes$/.test(p.desc)){const m=p.desc.match(/^(Treasure|Enemy drop|Event reward)(.*)$/);
-    const how=m&&m[1]==="Event reward"&&i.fb?`Награда за победа над ${i.fb}`:m?SRC[m[1]]:p.desc;
-    kv.push(["Как се взима",how+(m?m[2].replace(" x"," · ×"):"")]);}
-  if(i.fd) kv.push(["Къде",i.fdc==="dungeon"?`Вътре в ${i.fd}`:`В или до ${i.fd}`]);
+  if(p.desc&&p.cat!=="castle"&&!/runes$/.test(p.desc)) kv.push(["Как се взима",howText(p)]);
+  if(i.fd) kv.push(["Къде",i.fdc==="dungeon"?`Вътре в ${i.fd}`:`В ${i.fd}`]);
+  if(i.gn&&!i.ph) kv.push(["Ориентир",whereText(p)]);
   if(kv.length) body+=`<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${esc(b)}</dd>`).join("")}</dl>`;
+  if(i.gi&&!i.ph&&byId.get(i.gi)) body+=`<div class="btns"><button class="btn" type="button" data-id="${i.gi}">Покажи „${esc(i.gn)}“</button></div>`;
+  if(i.ph) body+=`<div class="note"><b>Мястото е приблизително.</b> В данните на играта тази награда е записана в центъра на района, а не на точно място. Виж в wiki кой я дава.</div>`;
   const tg=(t,a,c)=>a&&a.length?`<div><div class="meta" style="margin-bottom:5px">${t}</div><div class="tags">${tl(a).map(x=>`<span class="tag ${c}">${esc(x)}</span>`).join("")}</div></div>`:"";
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
   if(i.n) body+=`<p style="color:var(--muted)">${esc(i.n)}</p>`;
-  if(i.uv) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
+  if(i.uv&&!i.ph) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
   if(p.cat==="greatrune") body+=`<p style="color:var(--muted)">Great Rune пада от бос, но трябва да я активираш в съответната Divine Tower, за да работи.</p>`;
   if(i.fdc==="dungeon"&&i.fdi&&byId.get(i.fdi)) body+=`<div class="help"><b>Под земята.</b> Пинът е над мястото вътре в подземието, затова на картата отгоре не се вижда нищо. Влез в ${esc(i.fd)} и го търси вътре${i.fb?", при боса":""}.<div style="margin-top:8px"><button class="btn" type="button" data-id="${i.fdi}">Покажи ${esc(i.fd)}</button></div></div>`;
   if(p.cat==="npc"){const qs=A.npcq[p.name]||[]; if(!qs.length) body+=`<p style="color:var(--muted)">За този герой няма проследим куест.</p>`;
@@ -1350,7 +1365,7 @@ function renderCard(){
      <div class="btns"><button class="btn primary${f?" found":""}" type="button" id="cf" style="flex:1">${f?"✓ Намерено":"Отбележи като намерено"}</button>${p.cat==="custom"?`<button class="btn" type="button" id="cdel">Изтрий</button>`:""}</div>
      ${body}
      <textarea id="note" placeholder="Бележка: ниво, билд, какво остава…">${esc(st.notes[p.id]||"")}</textarea>
-     ${p.cat!=="custom"?`<div class="btns" style="gap:16px"><a class="wl" href="${wikiUrl(p.name)}" target="_blank" rel="noopener">Wiki ↗</a><a class="wl" href="${fextraUrl(p.name)}" target="_blank" rel="noopener">Fextralife ↗</a></div>`:""}
+     ${p.cat!=="custom"?`<div class="btns" style="gap:16px"><a class="wl" href="${wikiUrl(p.name)}" target="_blank" rel="noopener">Wiki ↗</a><a class="wl" href="${i.fx||fextraUrl(p.name)}" target="_blank" rel="noopener">Fextralife ↗</a></div>`:""}
      ${p.cat!=="custom"?`<div class="btns"><button class="btn${st.rep&&st.rep[p.id]?" on":""}" type="button" id="crep">${st.rep&&st.rep[p.id]?"✓ Докладвано като грешно":"Нещо не е вярно тук"}</button></div>`:""}
    </div></div>`;
   $("cx").onclick=closeCard; $("cf").onclick=()=>{toggle(p.id);renderCard();};
@@ -1390,7 +1405,7 @@ function objInfo(o){
     return {t:`${q.name}: ${s.t}`,sub:s.d,done:!!(st.q[q.id]||{})[s.n],core:true,q:true,x:s.x,y:s.y,m:s.m,cat:"npc",qc:q.color};}
   const p=byId.get(o[1]); if(!p) return null;
   const v=p.cat.startsWith("boss")?"Победи":({grace:"Открий",dungeon:"Изчисти",castle:"Влез в"}[p.cat]||"Вземи");
-  return {t:`${v} ${p.name}`,sub:[p.cat==="grace"||p.cat==="dungeon"?null:p.sub,p.desc&&!/runes$/.test(p.desc)?(SRC[p.desc.split(" x")[0]]||p.desc):null].filter(Boolean).join(" · "),done:!!st.found[p.id],core:o[2]===1||CORECAT.has(p.cat),boss:o[2]===1,x:p.x,y:p.y,m:p.m,cat:p.cat,p};
+  return {t:`${v} ${p.name}`,sub:(p.cat==="grace"||p.cat==="dungeon"||p.cat==="castle"||p.cat.startsWith("boss"))?(p.cat.startsWith("boss")?p.sub:""):[p.info&&p.info.fdc==="dungeon"?p.info.fd:null,howText(p),whereText(p,true)].filter(Boolean).join(" · "),done:!!st.found[p.id],core:o[2]===1||CORECAT.has(p.cat),boss:o[2]===1,x:p.x,y:p.y,m:p.m,cat:p.cat,p};
 }
 function phaseObjs(ph){const out=[];ph.o.forEach((o,i)=>{const v=objInfo(o);if(v&&(rAll||v.core))out.push(Object.assign(v,{o,i}));});return out;}
 function phaseProg(ph){const a=phaseObjs(ph);return [a.filter(v=>v.done).length,a.length];}
@@ -1529,7 +1544,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="752c6650";
+window.APPV="0b7d9581";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
