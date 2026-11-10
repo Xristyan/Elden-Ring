@@ -981,7 +981,8 @@ const CATS={
  talisman:{l:"Талисмани",g:"Екипировка",c:"#df9149"},
  spirit:{l:"Spirit Ashes",g:"Екипировка",c:"#73bdcf"},
  ash:{l:"Ashes of War",g:"Екипировка",c:"#48a87d"},
- spell:{l:"Магии",g:"Екипировка",c:"#9c73d6"},
+ sorcery:{l:"Заклинания (Sorceries)",g:"Екипировка",c:"#6f8fe0"},
+ incant:{l:"Молитви (Incantations)",g:"Екипировка",c:"#e6b450"},
  crystal:{l:"Crystal Tears",g:"Екипировка",c:"#c886d6"},
  smithing:{l:"Ковашки камъни",g:"Материали и ключове",c:"#a7a294"},
  glovewort:{l:"Glovewort",g:"Материали и ключове",c:"#8fb98a"},
@@ -1013,7 +1014,7 @@ function migrateIds(){if(st.idv===2||!A.idmap)return;const mp=A.idmap,re=o=>{con
 const KEY="tarnished-atlas-v3";
 let st={found:{},notes:{},custom:[],cats:PRESET,hideFound:false,labels:true,m:"M00",q:{},qopen:null};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
-if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}migrateIds();
+if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}if(!st.spellSplit){if((st.cats||[]).includes("spell"))st.cats=[...new Set([...st.cats,"sorcery","incant"])];st.spellSplit=1;}migrateIds();
 let enabled=new Set(st.cats), zone=null, sel=null, selStep=null, query="", adding=false, listLimit=80, tab="zones", openQ=st.qopen||null;
 let ALL=[]; const byId=new Map();
 function rebuild(){
@@ -1039,7 +1040,7 @@ function save(){
     if(!d||!u) return; const uid=await u.id(); if(!uid) return;
     docRef=d.doc("data/users/"+uid+"/atlas/v3");
     const snap=await docRef.get();
-    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}migrateIds();enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
+    if(snap.exists){try{st=Object.assign(st,JSON.parse(snap.data().json||"{}"));if(!st.npcOn){st.cats=[...new Set([...(st.cats||[]),"npc"])];st.npcOn=1;}if(!st.bossSplit){st.cats=[...new Set([...(st.cats||[]),"bossdragon","bossfield","bossdungeon","bossnight"])];st.bossSplit=1;}if(!st.keyOn){st.cats=[...new Set([...(st.cats||[]),"keyitem"])];st.keyOn=1;}if(!st.torOn){st.cats=[...new Set([...(st.cats||[]),"torrent"])];st.torOn=1;}if(!st.spellSplit){if((st.cats||[]).includes("spell"))st.cats=[...new Set([...st.cats,"sorcery","incant"])];st.spellSplit=1;}migrateIds();enabled=new Set(st.cats);openQ=st.qopen||null;rebuild();setLayer(st.m,true);}catch(e){}}
     else save();
   }catch(e){}
 })();
@@ -1354,6 +1355,7 @@ function renderCard(){
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
   if(i.n) body+=`<p style="color:var(--muted)">${esc(i.n)}</p>`;
   if(i.uv&&!i.ph) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
+  if(p.cat==="incant"||p.cat==="sorcery") body+=`<p style="color:var(--muted)">${p.cat==="incant"?"Повечето молитви не лежат по картата: купуваш ги от учители (Brother Corhyn, Miriel, Gowry и др.) или ги разменяш за Remembrance. Тук са тези, които се намират в света.":"Повечето заклинания се купуват от учители (Sellen, Thops, Rogier и др.) или се разменят за Remembrance. Тук са тези, които се намират в света."}</p>`;
   if(p.cat==="greatrune") body+=`<p style="color:var(--muted)">Great Rune пада от бос, но трябва да я активираш в съответната Divine Tower, за да работи.</p>`;
   if(i.fdc==="dungeon"&&i.fdi&&byId.get(i.fdi)) body+=`<div class="help"><b>Под земята.</b> Пинът е над мястото вътре в подземието, затова на картата отгоре не се вижда нищо. Влез в ${esc(i.fd)} и го търси вътре${i.fb?", при боса":""}.<div style="margin-top:8px"><button class="btn" type="button" data-id="${i.fdi}">Покажи ${esc(i.fd)}</button></div></div>`;
   if(p.cat==="npc"){const qs=A.npcq[p.name]||[]; if(!qs.length) body+=`<p style="color:var(--muted)">За този герой няма проследим куест.</p>`;
@@ -1544,7 +1546,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="0b7d9581";
+window.APPV="62595322";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
