@@ -1094,7 +1094,7 @@ let drawn=[], rafId=0;
 function sizeCanvas(){map.invalidateSize({pan:false});const s=map.getSize();cv.width=Math.round(s.x*DPR);cv.height=Math.round(s.y*DPR);cv.style.height=s.y+"px";ctx.setTransform(DPR,0,0,DPR,0,0);}
 function visible(){
   if(vis) return vis;
-  vis=ALL.filter(p=>p.m===curM&&enabled.has(p.cat)&&!(st.hideFound&&st.found[p.id]&&p.id!==sel));
+  vis=ALL.filter(p=>p.m===curM&&enabled.has(p.cat)&&(st.showNc||!(p.info&&p.info.nc)||p.id===sel)&&!(st.hideFound&&st.found[p.id]&&p.id!==sel));
   return vis;
 }
 const radius=z=>z<0?5:z<1?6.5:z<2?9:z<3?11:z<4?13:15;
@@ -1235,7 +1235,7 @@ function iconHTML(p,size){
   return svgG(p.cat);
 }
 function counts(){ // per category / zone on current layer
-  const c={},zc={};for(const p of ALL){if(p.m!==curM)continue;const f=st.found[p.id]?1:0;(c[p.cat]??=[0,0]);c[p.cat][0]+=f;c[p.cat][1]++;
+  const c={},zc={};for(const p of ALL){if(p.m!==curM||(!st.showNc&&p.info&&p.info.nc))continue;const f=st.found[p.id]?1:0;(c[p.cat]??=[0,0]);c[p.cat][0]+=f;c[p.cat][1]++;
     if(enabled.has(p.cat)&&p.cat!=="custom"){(zc[p.zone]??=[0,0]);zc[p.zone][0]+=f;zc[p.zone][1]++;}}return {c,zc};
 }
 let CNT=null;
@@ -1271,6 +1271,7 @@ function renderFilters(){
     b.innerHTML=`<div class="pad"><div class="seg" id="seg">${["M00","M01","M10"].map(m=>`<button type="button" data-m="${m}" aria-pressed="${curM===m}">${MLABEL[m]}</button>`).join("")}</div>
       <label class="sw">Скрий намереното<input type="checkbox" id="hideFound" ${st.hideFound?"checked":""}></label>
       <label class="sw">Имена на зоните<input type="checkbox" id="zoneLabels" ${st.labels?"checked":""}></label>
+      <label class="sw"><span>Покажи и непотвърдените<br><small style="color:var(--muted);font-size:12.5px">Пинове, които втори източник не потвърждава (${ALL.filter(p=>p.info&&p.info.nc).length}, основно ковашки камъни и Glovewort от врагове)</small></span><input type="checkbox" id="showNc" ${st.showNc?"checked":""}></label>
       <div class="cg-t" style="display:flex;justify-content:space-between;align-items:center">Категории<button class="link" type="button" id="allCats" style="min-height:32px;font-size:13px">Покажи всички</button></div>
       ${Object.entries(groups).map(([g,a])=>`<div class="cg-t">${g}</div><div class="tiles">${a.join("")}</div>`).join("")}</div>
       <div class="cg-t">Докладвани грешки</div>
@@ -1281,7 +1282,7 @@ function renderFilters(){
       <div class="btns"><button class="btn" type="button" id="pcopy">Копирай прогреса</button></div>
       <textarea id="ptext" rows="3" placeholder="Постави копирания прогрес тук" style="width:100%;margin-top:8px;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px"></textarea>
       <div class="btns" style="margin-top:8px"><button class="btn" type="button" id="pload">Зареди</button><span id="pmsg" style="font-size:13.5px;color:var(--muted);align-self:center"></span></div>
-      <p class="credit">Карта и данни: datamine от <a href="https://github.com/EthanShoeDev/elden-ring-compass" target="_blank" rel="noopener">elden-ring-compass</a> и <a href="https://github.com/jw-ofs/elden-ring-map" target="_blank" rel="noopener">jw-ofs/elden-ring-map</a>. Иконки: <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).<br>Версия ${window.APPV||"claude.ai"} · ${esc(window._diag||"")}</p>`;
+      <p class="credit">Карта и данни: datamine от <a href="https://github.com/EthanShoeDev/elden-ring-compass" target="_blank" rel="noopener">elden-ring-compass</a> и <a href="https://github.com/jw-ofs/elden-ring-map" target="_blank" rel="noopener">jw-ofs/elden-ring-map</a>. Иконки: <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0). Позициите са сверени с <a href="https://mapgenie.io/elden-ring" target="_blank" rel="noopener">Map Genie</a>.<br>Версия ${window.APPV||"claude.ai"} · ${esc(window._diag||"")}</p>`;
     b.scrollTop=sc;
   }
 }
@@ -1317,11 +1318,13 @@ const fextraUrl=n=>"https://www.google.com/search?q="+encodeURIComponent("site:e
 const DMG={physical:"физ.",standard:"standard",slash:"slash",strike:"strike",pierce:"pierce",magic:"магия",fire:"огън",lightning:"мълния",holy:"свято",bleed:"кървене",frostbite:"измръзване",poison:"отрова",rot:"гниене",sleep:"сън",madness:"лудост",death:"смърт"};
 const tl=a=>(a||[]).map(x=>DMG[x]||x);
 /* concrete "how / where" text for an item pin */
-const CTN={chest:"В сандък",cart:"В сандък на каруца (керван)",stele:"На каменна плоча до пътя (фрагмент от картата)"};
+const CTN={corpse:"На труп",chest:"В сандък",cart:"В сандък на каруца (керван)",stele:"На каменна плоча до пътя (фрагмент от картата)"};
 function howText(p){const i=p.info||{},d=p.desc||"";const m=d.match(/^(Treasure|Enemy drop|Event reward)(?: x(\d+))?$/);
   const q=m&&m[2]?` · ×${m[2]}`:"";
   if(!m) return d;
-  if(m[1]==="Treasure") return (CTN[i.ct]||"Лежи на земята, свети (често до труп)")+q;
+  if(i.shop) return `Продава се от ${i.shop}`;
+  if(i.mv&&i.fb) return `Пада от ${i.fb}`;
+  if(m[1]==="Treasure") return (CTN[i.ct]||"Лежи на земята, свети")+q;
   if(m[1]==="Enemy drop") return "Пада от враг, който стои тук"+q;
   if(i.fb) return `Награда за победа над ${i.fb}`+q;
   return "Награда от събитие, куест или NPC"+q;}
@@ -1354,7 +1357,10 @@ function renderCard(){
   const tg=(t,a,c)=>a&&a.length?`<div><div class="meta" style="margin-bottom:5px">${t}</div><div class="tags">${tl(a).map(x=>`<span class="tag ${c}">${esc(x)}</span>`).join("")}</div></div>`:"";
   body+=tg("Слаб на",i.w,"w")+tg("Устойчив на",i.res,"r")+tg("Нанася",i.dl,"");
   if(i.n) body+=`<p style="color:var(--muted)">${esc(i.n)}</p>`;
-  if(i.uv&&!i.ph) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
+  if(i.mv) body+=`<div class="help"><b>Коригирано място.</b> При сверката с втори източник (Map Genie) пинът се оказа на грешно място и е преместен.</div>`;
+  if(i.nc) body+=`<div class="note"><b>Не е потвърдено.</b> Втори източник не показва този предмет тук. Може да пада от враг на това място или да е грешка в данните.</div>`;
+  if(i.rth) body+=`<p style="color:var(--muted)">Roundtable Hold не е на картата на света. Тук е показан до надписа му в морето. Влизаш от всяко място на благодат („Roundtable Hold“ в менюто за пътуване).</p>`;
+  if(i.uv&&!i.ph&&!i.mv) body+=`<div class="note"><b>Непотвърдено място.</b> В данните на играта тази награда не е вързана с бос или NPC наблизо. Възможно е да се получава другаде. Провери в wiki.</div>`;
   if(p.cat==="incant"||p.cat==="sorcery") body+=`<p style="color:var(--muted)">${p.cat==="incant"?"Повечето молитви не лежат по картата: купуваш ги от учители (Brother Corhyn, Miriel, Gowry и др.) или ги разменяш за Remembrance. Тук са тези, които се намират в света.":"Повечето заклинания се купуват от учители (Sellen, Thops, Rogier и др.) или се разменят за Remembrance. Тук са тези, които се намират в света."}</p>`;
   if(p.cat==="greatrune") body+=`<p style="color:var(--muted)">Great Rune пада от бос, но трябва да я активираш в съответната Divine Tower, за да работи.</p>`;
   if(i.fdc==="dungeon"&&i.fdi&&byId.get(i.fdi)) body+=`<div class="help"><b>Под земята.</b> Пинът е над мястото вътре в подземието, затова на картата отгоре не се вижда нищо. Влез в ${esc(i.fd)} и го търси вътре${i.fb?", при боса":""}.<div style="margin-top:8px"><button class="btn" type="button" data-id="${i.fdi}">Покажи ${esc(i.fd)}</button></div></div>`;
@@ -1537,6 +1543,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{
   if(e.target.id==="hideFound"){st.hideFound=e.target.checked;save();render();}
+  if(e.target.id==="showNc"){st.showNc=e.target.checked;save();render();return;}
   if(e.target.id==="zoneLabels"){st.labels=e.target.checked;save();redraw();}
 });
 let qt;$("q").addEventListener("input",e=>{clearTimeout(qt);$("qclr").hidden=!e.target.value;qt=setTimeout(()=>{query=e.target.value.trim();listLimit=80;if(query&&sheetState==="peek")snap("open");if(!query&&tab==="list")tab="zones";renderTab();},180);});
@@ -1546,7 +1553,7 @@ $("q").addEventListener("keydown",e=>{if(e.key==="Enter")e.target.blur();});
 addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("fsheet").hidden)closeFilters();else if(adding)setAdd(false);else closeCard();}});
 addEventListener("resize",()=>{snap(sheetState);});
 
-window.APPV="62595322";
+window.APPV="0c61ee9d";
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
